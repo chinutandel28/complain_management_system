@@ -13,60 +13,26 @@ $currentTime = date( 'd-m-Y h:i:s A', time () );
 
 if(isset($_POST['submit']))
 {
-$sql=mysqli_query($bd, "SELECT password FROM  admin where password='".md5($_POST['password'])."' && username='".$_SESSION['alogin']."'");
-$num=mysqli_fetch_array($sql);
-if($num>0)
-{
- $con=mysqli_query($bd, "update admin set password='".md5($_POST['newpassword'])."', updationDate='$currentTime' where username='".$_SESSION['alogin']."'");
-$_SESSION['msg']="Password Changed Successfully !!";
+	$category=$_POST['category'];
+	$subcat=$_POST['subcategory'];
+	$id=intval($_GET['id']);
+$sql=mysqli_query($bd, "update subcategory set categoryid='$category',subcategory='$subcat',updationDate='$currentTime' where id='$id'");
+$_SESSION['msg']="Category Updated !!";
+
 }
-else
-{
-$_SESSION['msg']="Old Password not match !!";
-}
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Admin| Change Password</title>
+	<title>Admin| Edit SubCategory</title>
 	<link type="text/css" href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link type="text/css" href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
 	<link type="text/css" href="css/theme.css" rel="stylesheet">
 	<link type="text/css" href="images/icons/css/font-awesome.css" rel="stylesheet">
 	<link type="text/css" href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600' rel='stylesheet'>
-	<script type="text/javascript">
-function valid()
-{
-if(document.chngpwd.password.value=="")
-{
-alert("Current Password Filed is Empty !!");
-document.chngpwd.password.focus();
-return false;
-}
-else if(document.chngpwd.newpassword.value=="")
-{
-alert("New Password Filed is Empty !!");
-document.chngpwd.newpassword.focus();
-return false;
-}
-else if(document.chngpwd.confirmpassword.value=="")
-{
-alert("Confirm Password Filed is Empty !!");
-document.chngpwd.confirmpassword.focus();
-return false;
-}
-else if(document.chngpwd.newpassword.value!= document.chngpwd.confirmpassword.value)
-{
-alert("Password and Confirm Password Field do not match  !!");
-document.chngpwd.confirmpassword.focus();
-return false;
-}
-return true;
-}
-</script>
 </head>
 <body>
 <?php include('include/header.php');?>
@@ -80,7 +46,7 @@ return true;
 
 						<div class="module">
 							<div class="module-head">
-								<h3>Admin Change Password</h3>
+								<h3>Edit SubCategory</h3>
 							</div>
 							<div class="module-body">
 
@@ -88,48 +54,66 @@ return true;
 {?>
 									<div class="alert alert-success">
 										<button type="button" class="close" data-dismiss="alert">×</button>
-										<?php echo htmlentities($_SESSION['msg']);?><?php echo htmlentities($_SESSION['msg']="");?>
+									<strong>Well done!</strong>	<?php echo htmlentities($_SESSION['msg']);?><?php echo htmlentities($_SESSION['msg']="");?>
 									</div>
 <?php } ?>
+
+
 									<br />
 
-			<form class="form-horizontal row-fluid" name="chngpwd" method="post" onSubmit="return valid();">
-									
-<div class="control-group">
-<label class="control-label" for="basicinput">Current Password</label>
-<div class="controls">
-<input type="password" placeholder="Enter your current Password"  name="password" class="span8 tip" required>
-</div>
-</div>
-
+			<form class="form-horizontal row-fluid" name="Category" method="post" >
+<?php
+$id=intval($_GET['id']);
+$query=mysqli_query($bd, "select category.id,category.categoryName,subcategory.subcategory from subcategory join category on category.id=subcategory.categoryid where subcategory.id='$id'");
+while($row=mysqli_fetch_array($query))
+{
+?>		
 
 <div class="control-group">
-<label class="control-label" for="basicinput">New Password</label>
+<label class="control-label" for="basicinput">Category</label>
 <div class="controls">
-<input type="password" placeholder="Enter your new current Password"  name="newpassword" class="span8 tip" required>
+<select name="category" class="span8 tip" required>
+<option value="<?php echo htmlentities($row['id']);?>"><?php echo htmlentities($catname=$row['categoryName']);?></option>
+<?php $ret=mysqli_query($bd, "select * from category");
+while($result=mysqli_fetch_array($ret))
+{
+	$cat=$result['categoryName'];
+if($catname=$cat)
+{
+	continue;
+}
+else{
+?>
+<option value="<?php echo $result['id'];?>"><?php echo $result['categoryName'];?></option>
+<?php } }?>
+</select>
 </div>
 </div>
+
+
+
 
 <div class="control-group">
-<label class="control-label" for="basicinput">Current Password</label>
+<label class="control-label" for="basicinput">SubCategory Name</label>
 <div class="controls">
-<input type="password" placeholder="Enter your new Password again"  name="confirmpassword" class="span8 tip" required>
+<input type="text" placeholder="Enter category Name"  name="subcategory" value="<?php echo  htmlentities($row['subcategory']);?>" class="span8 tip" required>
 </div>
 </div>
 
 
+									<?php } ?>	
 
-
-										
-
-										<div class="control-group">
+	<div class="control-group">
 											<div class="controls">
-												<button type="submit" name="submit" class="btn">Submit</button>
+												<button type="submit" name="submit" class="btn">Update</button>
 											</div>
 										</div>
 									</form>
 							</div>
 						</div>
+
+
+						
 
 						
 						
@@ -145,5 +129,15 @@ return true;
 	<script src="scripts/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
 	<script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
 	<script src="scripts/flot/jquery.flot.js" type="text/javascript"></script>
+	<script src="scripts/datatables/jquery.dataTables.js"></script>
+	<script>
+		$(document).ready(function() {
+			$('.datatable-1').dataTable();
+			$('.dataTables_paginate').addClass("btn-group datatable-pagination");
+			$('.dataTables_paginate > a').wrapInner('<span />');
+			$('.dataTables_paginate > a:first-child').append('<i class="icon-chevron-left shaded"></i>');
+			$('.dataTables_paginate > a:last-child').append('<i class="icon-chevron-right shaded"></i>');
+		} );
+	</script>
 </body>
 <?php } ?>
